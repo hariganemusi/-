@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>飛べ！アシナガバチ</title>
+<style>
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: linear-gradient(#a5f3fc, #fef9c3);
+  text-align: center;
+}
+
+h1 {
+  margin: 10px;
+}
+
+canvas {
+  background: #fff;
+  border: 3px solid #facc15;
+  border-radius: 10px;
+}
+
+#info {
+  margin: 10px;
+  font-size: 18px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  background: #facc15;
+  color: white;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<h1>飛べ！アシナガバチ 🐝</h1>
+<div id="info">タップ or スペースキーでジャンプ！</div>
+<canvas id="game" width="400" height="600"></canvas><br>
+<button onclick="startGame()">スタート</button>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let bee, gravity, obstacles, score, gameOver;
+
+function startGame() {
+  bee = { x: 80, y: 300, v: 0 };
+  gravity = 0.5;
+  obstacles = [];
+  score = 0;
+  gameOver = false;
+  loop();
+}
+
+function jump() {
+  bee.v = -8;
+}
+
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") jump();
+});
+
+document.addEventListener("click", jump);
+
+function loop() {
+  if (gameOver) {
+    ctx.fillStyle = "black";
+    ctx.font = "30px sans-serif";
+    ctx.fillText("ゲームオーバー", 90, 300);
+    ctx.fillText("Score: " + score, 130, 350);
+    return;
+  }
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // bee
+  bee.v += gravity;
+  bee.y += bee.v;
+
+  ctx.fillStyle = "yellow";
+  ctx.beginPath();
+  ctx.arc(bee.x, bee.y, 15, 0, Math.PI * 2);
+  ctx.fill();
+
+  // obstacles
+  if (Math.random() < 0.02) {
+    let gap = 150;
+    let top = Math.random() * 300;
+    obstacles.push({ x: 400, top: top, bottom: top + gap });
+  }
+
+  obstacles.forEach(o => {
+    o.x -= 3;
+
+    ctx.fillStyle = "green";
+    ctx.fillRect(o.x, 0, 40, o.top);
+    ctx.fillRect(o.x, o.bottom, 40, 600);
+
+    // collision
+    if (bee.x > o.x && bee.x < o.x + 40 &&
+        (bee.y < o.top || bee.y > o.bottom)) {
+      gameOver = true;
+    }
+
+    if (o.x === 77) score++;
+  });
+
+  // ground / ceiling
+  if (bee.y > 600 || bee.y < 0) gameOver = true;
+
+  // score
+  ctx.fillStyle = "black";
+  ctx.font = "20px sans-serif";
+  ctx.fillText("Score: " + score, 10, 30);
+
+  requestAnimationFrame(loop);
+}
+</script>
+
+</body>
+</html>
